@@ -13,7 +13,10 @@
     "@types/react-dom": "^19.1.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-easy-crop": "^5.4.2",
+    "react-router-dom": "^7.6.1",
     "react-scripts": "5.0.1",
+    "react-webcam": "^7.2.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -40,5 +43,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/react-easy-crop": "^1.16.0",
+    "@types/react-webcam": "^1.1.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3"
   }
 }
