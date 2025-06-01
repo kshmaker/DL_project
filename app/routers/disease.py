@@ -24,12 +24,15 @@ def get_summary_and_definition(disease_name: str):
     idx = diseases.index(disease_name)
     summary = info1_df.iloc[idx+1, 1]
     definition = info1_df.iloc[idx+1, 2]
+    # print(summary)
+    # print(definition)
     return summary, definition
 
 def get_management(disease_name: str):
     idx = diseases.index(disease_name)
     col = idx + 1
     steps = method_df.iloc[1:5, col].dropna().tolist()
+    # print(steps)
     return steps
 
 def get_severity(disease_name: str):
@@ -40,10 +43,12 @@ def get_severity(disease_name: str):
         "중등도": severity_df.iloc[2, col],
         "중증": severity_df.iloc[3, col],
     }
+    # print(severity)
     return severity
 
 @router.get("/disease/{disease_id}")
 async def disease_detail(disease_id: int):
+    print(disease_id)
     if disease_id < 1 or disease_id > len(diseases):
         raise HTTPException(status_code=404, detail="Disease ID out of range")
     disease_name = diseases[disease_id - 1]

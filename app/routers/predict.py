@@ -18,6 +18,7 @@ async def predict_fake(
     input_id: str = Form(...),
     file: UploadFile = File(...)
 ):
+    print(file)
     input_id_lower = input_id.lower()
     print(f"Received input_id: {input_id} (normalized: {input_id_lower})")
     print(f"Received file: {file.filename}")
