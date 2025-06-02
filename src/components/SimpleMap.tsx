@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Map, MapMarker } from "react-kakao-maps-sdk";
 
-const KAKAO_APP_KEY = "e5585f255fbdc92284e1ed5a385f1bdb"; // 본인의 카카오 앱키로 교체하세요
+const KAKAO_APP_KEY = process.env.REACT_APP_KAKAOMAP_KEY || "";
 
 export default function NearbyAnimalHospitalMap() {
   const [kakaoReady, setKakaoReady] = useState(false);
