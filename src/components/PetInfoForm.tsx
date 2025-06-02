@@ -18,7 +18,7 @@ const breedOptions = [
   { value: "Pomeranian", label: "포메라니안" },
   { value: "Maltese", label: "말티즈" },
   { value: "Poodle", label: "푸들" },
-  { value: "unknown", label: "알 수 없음" },
+  { value: "Unknown", label: "알 수 없음" },
   { value: "custom", label: "직접 입력" },
 ];
 
@@ -77,6 +77,16 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!unknownAge && petInfo.age.trim() === "") {
+      alert("반려견 나이를 입력하거나 알 수 없음을 선택해주세요.");
+      return;
+    }
+
+    if (petInfo.breed.trim() === "" || selectedBreed === "") {
+      alert("품종을 선택하거나 직접 입력해주세요.");
+      return;
+    }
+
     if (!imageBlob) {
       alert("사진을 업로드하거나 촬영 후 크롭을 완료해주세요.");
       return;

@@ -60,9 +60,13 @@ export default function ResultModal({
 
         <div className="p-3 mb-4 text-sm bg-gray-100 rounded">
           <strong>입력된 반려견 정보:</strong>
-          <div>나이: {petInfo.age}</div>
-          <div>성별: {petInfo.gender}</div>
-          <div>품종: {petInfo.breed}</div>
+          <div>나이: {petInfo.age.trim() !== "" ? petInfo.age : "Unknown"}</div>
+          <div>
+            성별: {petInfo.gender.trim() !== "" ? petInfo.gender : "Unknown"}
+          </div>
+          <div>
+            품종: {petInfo.breed.trim() !== "" ? petInfo.breed : "Unknown"}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-4">
