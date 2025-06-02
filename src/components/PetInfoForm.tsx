@@ -11,7 +11,7 @@ type Props = {
       gender: string;
     }>
   >;
-  onAnalyze: (formData: FormData, selectedInputId: string) => void;
+  onAnalyze: (formData: FormData) => void;
 };
 
 const breedOptions = [
@@ -22,30 +22,20 @@ const breedOptions = [
   { value: "custom", label: "직접 입력" },
 ];
 
-const sampleInputs = [
-  { id: "input1", label: "사진 1" },
-  { id: "input2", label: "사진 2" },
-  { id: "input3", label: "사진 3" },
-  { id: "input4", label: "사진 4" },
-  { id: "input5", label: "사진 5" },
-  { id: "input6", label: "사진 6" },
-  { id: "input7", label: "무증상" },
-];
-
 type Mode = "upload" | "camera";
 
 export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
   const [mode, setMode] = useState<Mode>("upload");
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null); //원본 사진 파일
   const [capturedSrc, setCapturedSrc] = useState<string | null>(null);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const [selectedBreed, setSelectedBreed] = useState("");
   const [customBreed, setCustomBreed] = useState("");
   const [unknownAge, setUnknownAge] = useState(false);
-  const [inputId, setInputId] = useState("");
 
-  // selectedBreed 또는 customBreed가 변경되면 petInfo.breed 자동 업데이트
+  // breed 자동 업데이트
   useEffect(() => {
     if (selectedBreed === "custom") {
       setPetInfo((prev) => ({ ...prev, breed: customBreed }));
@@ -54,32 +44,20 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
     }
   }, [selectedBreed, customBreed, setPetInfo]);
 
-  // 업로드된 파일명에 따라 inputId 자동 설정
+  // 미리보기 URL 생성 및 해제
   useEffect(() => {
-    if (file) {
-      const fileNameLower = file.name.toLowerCase();
-      console.log("file name:", fileNameLower);
-      const matched = sampleInputs.find((item) =>
-        fileNameLower.includes(item.id.toLowerCase())
-      );
-      console.log("matched inputId:", matched);
-
-      if (matched && typeof matched.id === "string") {
-        setInputId(matched.id);
-      } else {
-        setInputId("");
-      }
+    if (imageBlob) {
+      const url = URL.createObjectURL(imageBlob);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
     } else {
-      setInputId("");
+      setPreviewUrl(null);
     }
-  }, [file]);
-
-  // 촬영된 데이터URL에 대한 파일명 매핑 (inputId 수동 설정 필요할 경우 UI에서 선택하도록 처리 권장)
+  }, [imageBlob]);
 
   // 크롭 완료 후 Blob 받기
   const onCropComplete = (blob: Blob) => {
     setImageBlob(blob);
-    // 크롭된 이미지로부터 파일명 기반 분류 불가하므로 inputId는 기존값 유지
   };
 
   // 카메라 촬영 완료 시 데이터URL 받기
@@ -87,54 +65,45 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
     setCapturedSrc(dataUrl);
     setFile(null);
     setImageBlob(null);
-    setInputId(""); // 촬영시 inputId 수동선택 필요 (UI에서 선택하도록)
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
-    setFile(selectedFile);
+    setFile(selectedFile); //원본 파일 저장
     setCapturedSrc(null);
     setImageBlob(null);
-    // inputId는 useEffect에서 자동 설정됨
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(
-      "Submitting with inputId:",
-      inputId,
-      "file:",
-      file,
-      "imageBlob:",
-      imageBlob
-    );
-
     if (!imageBlob) {
       alert("사진을 업로드하거나 촬영 후 크롭을 완료해주세요.");
       return;
     }
-    if (!inputId) {
-      alert("사진 종류가 파일명과 매칭되지 않아 선택해주세요.");
-      return;
-    }
     const formData = new FormData();
-    formData.append("file", imageBlob);
-    formData.append("input_id", inputId);
+
+    if (file) {
+      //파일명은 원본 파일명 사용, Blob를 파일처럼 첨부
+      formData.append("file", imageBlob, file.name);
+    } else {
+      //촬영 모드를 택하여 file이 없을 경우 기본 파일명 사용
+      formData.append("file", imageBlob, "captured_image.jpg");
+    }
     formData.append("age", unknownAge ? "" : petInfo.age);
     formData.append("breed", petInfo.breed);
     formData.append("gender", petInfo.gender);
 
-    onAnalyze(formData, inputId);
+    onAnalyze(formData);
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-md p-6 mx-auto mt-10 space-y-4 bg-white rounded shadow-md"
+      className="flex flex-col items-center max-w-xl p-6 mx-auto mt-10 space-y-4 bg-white rounded shadow-md"
     >
       {/* 나이 입력 및 알 수 없음 체크박스 */}
-      <div>
+      <div className="w-full">
         <label>반려견 나이</label>
         <input
           type="number"
@@ -163,7 +132,7 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
       </div>
 
       {/* 성별 선택 */}
-      <div>
+      <div className="w-full">
         <label>성별</label>
         <select
           value={petInfo.gender}
@@ -177,7 +146,7 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
       </div>
 
       {/* 품종 선택 및 직접입력 */}
-      <div>
+      <div className="w-full">
         <label>품종</label>
         <select
           value={selectedBreed}
@@ -206,7 +175,7 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
       </div>
 
       {/* 이미지 업로드 / 촬영 모드 선택 */}
-      <div>
+      <div className="w-full">
         <label className="block mb-1 font-medium">이미지 입력 방식 선택</label>
         <select
           className="w-full p-2 border rounded"
@@ -216,7 +185,6 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
             setFile(null);
             setCapturedSrc(null);
             setImageBlob(null);
-            setInputId("");
           }}
         >
           <option value="upload">파일 업로드</option>
@@ -252,7 +220,6 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
             onClick={() => {
               setCapturedSrc(null);
               setImageBlob(null);
-              setInputId("");
             }}
             className="mt-2 text-sm text-red-500"
           >
@@ -262,20 +229,39 @@ export default function PetInfoForm({ petInfo, setPetInfo, onAnalyze }: Props) {
       )}
 
       {/* 크롭 미리보기 */}
-      {imageBlob && (
-        <div>
-          <h2 className="mb-1 font-medium">최종 이미지 미리보기</h2>
-          <img
-            src={URL.createObjectURL(imageBlob)}
-            alt="Preview"
-            className="object-cover w-64 h-64 rounded"
-          />
+      {previewUrl && (
+        <div className="flex flex-col items-center mt-4">
+          <h2 className="mb-2 font-medium text-center">최종 이미지 미리보기</h2>
+          <div
+            className="flex items-center justify-center overflow-hidden border border-gray-200 rounded bg-gray-50"
+            style={{
+              width: 640,
+              height: 640,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <img
+              src={previewUrl}
+              alt="미리보기"
+              width={640}
+              height={640}
+              className="object-contain w-full h-full"
+              style={{
+                display: "block",
+                margin: "auto",
+                maxWidth: "90%",
+                maxHeight: "90%",
+              }}
+            />
+          </div>
         </div>
       )}
 
       <button
         type="submit"
-        className="w-full px-4 py-2 text-white bg-blue-600 rounded"
+        className="w-full max-w-[640px] px-4 py-3 text-lg font-bold text-white bg-blue-600 rounded hover:bg-blue-700"
       >
         분석 요청
       </button>

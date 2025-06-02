@@ -1,39 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
-
-export default function SimpleMap() {
+import React, { useState } from "react";
+import { Map } from "react-kakao-maps-sdk";
+export default function KakaoMapToggle() {
   const [showMap, setShowMap] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (showMap && window.kakao && mapRef.current) {
-      const container = mapRef.current;
-      const options = {
-        center: new window.kakao.maps.LatLng(37.5665, 126.978), // 서울 중심 좌표
-        level: 5,
-      };
-      new window.kakao.maps.Map(container, options);
-    }
-  }, [showMap]);
 
   return (
     <div>
       <button
         onClick={() => setShowMap((prev) => !prev)}
-        className="px-4 py-2 text-white bg-blue-600 rounded"
+        className="px-4 py-2 mb-4 text-white bg-blue-600 rounded"
       >
         {showMap ? "지도 숨기기" : "지도 보기"}
       </button>
 
       {showMap && (
-        <div
-          ref={mapRef}
-          style={{ width: "100%", height: "400px", marginTop: "1rem" }}
+        <Map
+          center={{ lat: 33.450701, lng: 126.570667 }}
+          style={{ width: "1000px", height: "600px" }}
+          level={3}
         />
       )}
     </div>
